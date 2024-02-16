@@ -32,7 +32,6 @@ public class App
      */
     public void connect()
     {
-        System.out.println("DEBUG: Attempting to connect...");
         try
         {
             // Load Database driver
@@ -53,7 +52,7 @@ public class App
                 // Wait a bit for db to start
                 Thread.sleep(30000);
                 // Connect to database
-                con = DriverManager.getConnection("jdbc:mysql://db:3306/employees?useSSL=false", "root", "example");
+                con = DriverManager.getConnection("jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true", "root", "example");
                 System.out.println("Successfully connected");
                 break;
             }
