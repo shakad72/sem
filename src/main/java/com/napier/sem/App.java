@@ -96,10 +96,13 @@ public class App
             // Create an SQL statement
             Statement stmt = con.createStatement();
             // Create string for SQL statement
-            String strSelect =
-                    "SELECT emp_no, first_name, last_name "
-                            + "FROM employees "
-                            + "WHERE emp_no = " + ID;
+            String strSelect = String.format("select first_name,last_name,\n" +
+                    "(select title from titles where titles.emp_no = employees.emp_no and titles.to_date ='9999-01-01') as title,\n" +
+                    "(select salary from salaries where salaries.emp_no = employees.emp_no and salaries.to_date = '9999-01-01') as salary,\n" +
+                    "(select departments.dept_name from departments where departments.dept_no = dept_emp.dept_no) as dept_name,\n" +
+                    "(select concat(employees.first_name,' ',employees.last_name) from employees inner join dept_manager on employees.emp_no=dept_manager.emp_no where dept_manager.dept_no=dept_emp.dept_no and dept_manager.to_date='9999-01-01') as manager\n" +
+                    "from employees inner join dept_emp on dept_emp.emp_no = employees.emp_no where employees.emp_no = %d and dept_emp.to_date ='9999-01-01';", ID);
+
             // Execute SQL statement
             ResultSet rset = stmt.executeQuery(strSelect);
             // Return new employee if valid.
@@ -107,9 +110,13 @@ public class App
             if (rset.next())
             {
                 Employee emp = new Employee();
-                emp.emp_no = rset.getInt("emp_no");
+                emp.emp_no = ID;
                 emp.first_name = rset.getString("first_name");
                 emp.last_name = rset.getString("last_name");
+                emp.title = rset.getString("title");
+                emp.salary = rset.getInt("salary");
+                emp.dept_name = rset.getString("dept_name");
+                emp.manager = rset.getString("manager");
                 return emp;
             }
             else
