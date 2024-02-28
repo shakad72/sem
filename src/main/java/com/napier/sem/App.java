@@ -18,10 +18,9 @@ public class App
         // Connect to database
         a.connect();
         // Get Employee
-//        Employee emp = a.getEmployee(255530);
+        Employee emp = a.getEmployee(255530);
         // Display results
-        a.getSalariesByRole("Engineer");
-//        a.displayEmployee(emp);
+        a.displayEmployee(emp);
 
         // Disconnect from database
         a.disconnect();
@@ -53,7 +52,7 @@ public class App
                 // Wait a bit for db to start
                 Thread.sleep(30000);
                 // Connect to database
-                con = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/employees?useSSL=false&allowPublicKeyRetrieval=true", "root", "example");
+                con = DriverManager.getConnection("jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true", "root", "example");
                 System.out.println("Successfully connected");
                 break;
             }
@@ -144,43 +143,6 @@ public class App
                             + "Salary:" + emp.salary + "\n"
                             + emp.dept_name + "\n"
                             + "Manager: " + emp.manager + "\n");
-        }
-    }
-
-    public void getSalariesByRole(String role)
-    {
-        try
-        {
-            // Create an SQL statement
-            Statement stmt = con.createStatement();
-            // Create string for SQL statement
-            String strSelect = String.format("SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary " +
-                            "FROM employees, salaries, titles " +
-                            "WHERE employees.emp_no = salaries.emp_no " +
-                            "AND employees.emp_no = titles.emp_no " +
-                            "AND salaries.to_date = '9999-01-01' " +
-                            "AND titles.to_date = '9999-01-01' " +
-                            "AND titles.title = '%s' " +
-                            "ORDER BY employees.emp_no ASC", role);
-
-            // Execute SQL statement
-            ResultSet rset = stmt.executeQuery(strSelect);
-            // Return new employee if valid.
-            // Check one is returned
-            while (rset.next())
-            {
-                System.out.printf("Emp_no: %d, F_Name: %s, L_Name: %s, Salary: %d\r\n",
-                        rset.getInt("emp_no"),
-                        rset.getString("first_name"),
-                        rset.getString("last_name"),
-                        rset.getInt("salary"));
-            }
-        }
-        catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-            System.out.println("Failed to get employee details");
-            return;
         }
     }
 }
