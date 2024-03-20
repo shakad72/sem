@@ -20,12 +20,13 @@ public class App
         a.connect();
 
         // Extract employee salary information
-        ArrayList<Employee> employees = a.getAllSalaries();
+//        Department dept = new Department();
+//        dept.dept_no = "d009";
+//        ArrayList<Employee> employees = a.getSalariesByDepartment(dept);
+//        a.printSalaries(employees);
 
-        // Test the size of the returned data - should be 240124
-//        System.out.println(employees.size());
-        a.printSalaries(employees);
-
+        Employee emp = a.getEmployee(10001);
+        System.out.println(emp);
         // Disconnect from database
         a.disconnect();
     }
@@ -104,6 +105,7 @@ public class App
                     "(select title from titles where titles.emp_no = employees.emp_no and titles.to_date ='9999-01-01') as title,\n" +
                     "(select salary from salaries where salaries.emp_no = employees.emp_no and salaries.to_date = '9999-01-01') as salary,\n" +
                     "(select departments.dept_name from departments where departments.dept_no = dept_emp.dept_no) as dept_name,\n" +
+                    "(select emp_no from dept_manager where dept_no=dept_emp.dept_no and to_date='9999-01-01') as manager,\n" +
                     "(select concat(employees.first_name,' ',employees.last_name) from employees inner join dept_manager on employees.emp_no=dept_manager.emp_no where dept_manager.dept_no=dept_emp.dept_no and dept_manager.to_date='9999-01-01') as manager\n" +
                     "from employees inner join dept_emp on dept_emp.emp_no = employees.emp_no where employees.emp_no = %d and dept_emp.to_date ='9999-01-01';", ID);
 
@@ -119,8 +121,51 @@ public class App
                 emp.last_name = rset.getString("last_name");
                 emp.title = rset.getString("title");
                 emp.salary = rset.getInt("salary");
-                emp.dept_name = rset.getString("dept_name");
-                emp.manager = rset.getString("manager");
+                emp.manager = getEmployee(rset.getInt("manager"));
+//                emp.dept = rset.getString("dept_name");
+//                emp.manager = rset.getString("manager");
+                return emp;
+            }
+            else
+                return null;
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to get employee details");
+            return null;
+        }
+    }
+
+    public Employee getEmployee(String first_name, String last_name){
+        try
+        {
+            // Create an SQL statement
+            Statement stmt = con.createStatement();
+            // Create string for SQL statement
+            String strSelect = String.format("select employees.emp_no, first_name,last_name,\n" +
+                    "(select title from titles where titles.emp_no = employees.emp_no and titles.to_date ='9999-01-01') as title,\n" +
+                    "(select salary from salaries where salaries.emp_no = employees.emp_no and salaries.to_date = '9999-01-01') as salary,\n" +
+                    "(select departments.dept_name from departments where departments.dept_no = dept_emp.dept_no) as dept_name,\n" +
+                    "(select emp_no from dept_manager where dept_no=dept_emp.dept_no and to_date='9999-01-01') as manager,\n" +
+                    "(select concat(employees.first_name,' ',employees.last_name) from employees inner join dept_manager on employees.emp_no=dept_manager.emp_no where dept_manager.dept_no=dept_emp.dept_no and dept_manager.to_date='9999-01-01') as manager\n" +
+                    "from employees inner join dept_emp on dept_emp.emp_no = employees.emp_no where employees.first_name = '%s' and employees.last_name = '%s' and dept_emp.to_date ='9999-01-01';", first_name,last_name);
+
+            // Execute SQL statement
+            ResultSet rset = stmt.executeQuery(strSelect);
+            // Return new employee if valid.
+            // Check one is returned
+            if (rset.next())
+            {
+                Employee emp = new Employee();
+                emp.emp_no = rset.getInt("emp_no");
+                emp.first_name = rset.getString("first_name");
+                emp.last_name = rset.getString("last_name");
+                emp.title = rset.getString("title");
+                emp.salary = rset.getInt("salary");
+                emp.manager = getEmployee(rset.getInt("manager"));
+//                emp.dept = rset.getString("dept_name");
+//                emp.manager = rset.getString("manager");
                 return emp;
             }
             else
@@ -145,7 +190,7 @@ public class App
                             + emp.last_name + "\n"
                             + emp.title + "\n"
                             + "Salary:" + emp.salary + "\n"
-                            + emp.dept_name + "\n"
+                            + emp.dept + "\n"
                             + "Manager: " + emp.manager + "\n");
         }
     }
@@ -195,16 +240,72 @@ public class App
      */
     public void printSalaries(ArrayList<Employee> employees)
     {
+        // Check employees is not null
+        if (employees == null)
+        {
+            System.out.println("No employees");
+            return;
+        }
         // Print header
-        System.out.printf("%-10s %-15s %-20s %-8s%n", "Emp No", "First Name", "Last Name", "Salary");
+        System.out.println(String.format("%-10s %-15s %-20s %-8s", "Emp No", "First Name", "Last Name", "Salary"));
         // Loop over all employees in the list
         for (Employee emp : employees)
         {
+            if (emp == null)
+                continue;
             String emp_string =
                     String.format("%-10s %-15s %-20s %-8s",
                             emp.emp_no, emp.first_name, emp.last_name, emp.salary);
             System.out.println(emp_string);
         }
     }
+
+    public Department getDepartment(String dept_name){
+        Department dept = new Department();
+        try {
+            Statement stmt = con.createStatement();
+            String sql = String.format("select d.dept_no , d.dept_name ,dm.emp_no  from departments d inner join dept_manager dm " +
+                    "on d.dept_no =dm.dept_no WHERE d.dept_name = '%s' and dm.to_date ='9999-01-01'", dept_name);
+            ResultSet rset = stmt.executeQuery(sql);
+            if(rset.next()) {
+                dept.dept_name = dept_name;
+                dept.dept_no = rset.getString("dept_no");
+                dept.manager = getEmployee(rset.getInt("emp_no"));
+            }
+        }catch (Exception e){
+            System.out.println("Failed to get department details");
+            return null;
+        }
+        return dept;
+    }
+
+    public ArrayList<Employee> getSalariesByDepartment(Department dept){
+        ArrayList<Employee> employees = new ArrayList<>();
+        try {
+            Statement stmt = con.createStatement();
+            String sql = String.format("SELECT employees.emp_no, employees.first_name, employees.last_name, salaries.salary " +
+                    "FROM employees, salaries, dept_emp, departments " +
+                    "WHERE employees.emp_no = salaries.emp_no " +
+                    "AND employees.emp_no = dept_emp.emp_no " +
+                    "AND dept_emp.dept_no = departments.dept_no " +
+                    "AND salaries.to_date = '9999-01-01' " +
+                    "AND departments.dept_no = '%s' " +
+                    "ORDER BY employees.emp_no ASC", dept.dept_no);
+            ResultSet rset = stmt.executeQuery(sql);
+            while(rset.next()) {
+                Employee emp = new Employee();
+                emp.emp_no = rset.getInt("emp_no");
+                emp.first_name = rset.getString("first_name");
+                emp.last_name = rset.getString("last_name");
+                emp.salary = rset.getInt("salary");
+                employees.add(emp);
+            }
+        }catch (Exception e){
+            System.out.println("Failed to get department details");
+            return null;
+        }
+        return employees;
+    }
+
 
 }
