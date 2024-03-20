@@ -54,8 +54,7 @@ public class App
             System.out.println("Connecting to database...");
             try
             {
-                // Wait a bit for db to start
-                Thread.sleep(30000);
+
                 // Connect to database
                 con = DriverManager.getConnection("jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true", "root", "example");
                 System.out.println("Successfully connected");
@@ -66,10 +65,15 @@ public class App
                 System.out.println("Failed to connect to database attempt " + Integer.toString(i));
                 System.out.println(sqle.getMessage());
             }
-            catch (InterruptedException ie)
-            {
-                System.out.println("Thread interrupted? Should not happen.");
+            try {
+                // Wait a bit for db to start
+                Thread.sleep(30000);
             }
+            catch(InterruptedException ie)
+            {
+                    System.out.println("Thread interrupted? Should not happen.");
+            }
+
         }
     }
 
@@ -121,7 +125,12 @@ public class App
                 emp.last_name = rset.getString("last_name");
                 emp.title = rset.getString("title");
                 emp.salary = rset.getInt("salary");
-                emp.manager = getEmployee(rset.getInt("manager"));
+//                System.out.println("Manager = " + rset.getInt("manager"));
+                // Break recursion
+                int managerId = rset.getInt("manager");
+                if(ID!=managerId){
+                    emp.manager = getEmployee(rset.getInt("manager"));
+                }
 //                emp.dept = rset.getString("dept_name");
 //                emp.manager = rset.getString("manager");
                 return emp;
