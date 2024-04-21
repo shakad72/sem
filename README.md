@@ -6,3 +6,4 @@ This project is part of the labwork for a module at the Edinburgh Napier Univers
 - Develop build status ![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/shakad72/sem/main.yml?branch=develop)
 - License ![GitHub License](https://img.shields.io/github/license/shakad72/sem)
 - Release ![GitHub Release](https://img.shields.io/github/v/release/shakad72/sem)
+- Code coverage [![codecov](https://codecov.io/gh/shakad72/sem/graph/badge.svg?token=OPEIQBFA8O)](https://codecov.io/gh/shakad72/sem)
