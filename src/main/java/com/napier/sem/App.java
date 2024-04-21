@@ -17,8 +17,8 @@ public class App
     {
         // Manage command line options
         var options = new Options()
-                .addOption("h",true,"Database host (default localhost)")
-                .addOption("p",true,"Database port (default 33060)");
+                .addOption("h",true,"Database host (default db)")
+                .addOption("p",true,"Database port (default 3306)");
 
         var parser = new DefaultParser();
         CommandLine cmdLine;
@@ -36,12 +36,12 @@ public class App
         if(cmdLine.hasOption('h')){
             host = cmdLine.getOptionValue('h');
         }else{
-            host = "localhost";
+            host = "db";
         }
         if(cmdLine.hasOption('p')){
             port = Integer.parseInt(cmdLine.getOptionValue('p'));
         }else{
-            port = 33060;
+            port = 3306;
         }
 
         // Create new Application
