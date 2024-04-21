@@ -1,5 +1,7 @@
 package com.napier.sem;
 
+import org.apache.commons.cli.*;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -13,15 +15,41 @@ public class App
 
     public static void main(String[] args)
     {
+        // Manage command line options
+        var options = new Options()
+                .addOption("h",true,"Database host (default localhost)")
+                .addOption("p",true,"Database port (default 33060)");
+
+        var parser = new DefaultParser();
+        CommandLine cmdLine;
+
+        try {
+            cmdLine = parser.parse(options, args);
+        } catch (ParseException e) {
+            new HelpFormatter().printHelp("apache args...", options);
+            return;
+        }
+
+        // Retrieve command line arguments
+        String host;
+        int port;
+        if(cmdLine.hasOption('h')){
+            host = cmdLine.getOptionValue('h');
+        }else{
+            host = "localhost";
+        }
+        if(cmdLine.hasOption('p')){
+            port = Integer.parseInt(cmdLine.getOptionValue('p'));
+        }else{
+            port = 33060;
+        }
+
         // Create new Application
         App a = new App();
 
         // Connect
-        if (args.length < 1) {
-            a.connect("localhost:33060", 10000);
-        } else {
-            a.connect(args[0], Integer.parseInt(args[1]));
-        }
+        System.out.println(host+":"+port);
+        a.connect(host+":"+port, 10000);
 
         // Extract employee salary information
         ArrayList<Employee> employees = a.getAllSalaries();
