@@ -36,7 +36,7 @@ public class App
         if(cmdLine.hasOption('h')){
             host = cmdLine.getOptionValue('h');
         }else{
-            host = "db";
+            host = "localhost";
         }
         if(cmdLine.hasOption('p')){
             port = Integer.parseInt(cmdLine.getOptionValue('p'));
@@ -136,7 +136,7 @@ public class App
                     "(select salary from salaries where salaries.emp_no = employees.emp_no and salaries.to_date = '9999-01-01') as salary,\n" +
                     "(select departments.dept_name from departments where departments.dept_no = dept_emp.dept_no) as dept_name,\n" +
                     "(select concat(employees.first_name,' ',employees.last_name) from employees inner join dept_manager on employees.emp_no=dept_manager.emp_no where dept_manager.dept_no=dept_emp.dept_no and dept_manager.to_date='9999-01-01') as manager\n" +
-                    "from employees inner join dept_emp on dept_emp.emp_no = employees.emp_no where employees.emp_no = %d and dept_emp.to_date ='9999-01-01';", ID);
+                    "from employees left outer join dept_emp on  employees.emp_no=dept_emp.emp_no where employees.emp_no = %d and (dept_emp.to_date ='9999-01-01' or dept_emp.to_date is NULL)", ID);
 
             // Execute SQL statement
             ResultSet rset = stmt.executeQuery(strSelect);
@@ -242,6 +242,25 @@ public class App
                     String.format("%-10s %-15s %-20s %-8s",
                             emp.emp_no, emp.first_name, emp.last_name, emp.salary);
             System.out.println(emp_string);
+        }
+    }
+
+
+    public void addEmployee(Employee emp)
+    {
+        try
+        {
+            Statement stmt = con.createStatement();
+            String strUpdate =
+                    "INSERT INTO employees (emp_no, first_name, last_name, birth_date, gender, hire_date) " +
+                            "VALUES (" + emp.emp_no + ", '" + emp.first_name + "', '" + emp.last_name + "', " +
+                            "'9999-01-01', 'M', '9999-01-01')";
+            stmt.execute(strUpdate);
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to add employee");
         }
     }
 

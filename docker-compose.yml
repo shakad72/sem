@@ -1,4 +1,4 @@
-version: '3'
+#version: '3'
 services:
   # Application Dockerfile is in same folder which is .
   app:
@@ -10,4 +10,5 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     ports:
-      - "33060:3306"
+      - "3306:3306"
+      - "33060:33060"
